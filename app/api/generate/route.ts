@@ -24,7 +24,15 @@ function getSubjectVariants(subj: string): string[] {
   if (s.includes("math")) return ["Math", "Mathematics", "math", "mathematics"];
   if (s.includes("social") || s.includes("history") || s.includes("civic")) return ["Social Studies", "Social Science", "History", "Civics"];
   if (s.includes("sci")) return ["Science", "General Science", "Physical Science"];
-  if (s.includes("read") || s.includes("english") || s.includes("ela") || s.includes("lang")) return ["Reading", "English", "ELA", "Language Arts"];
+  if (s.includes("read") || s.includes("english") || s.includes("ela") || s.includes("lang")) {
+    return [
+      "English Language Arts",
+      "Reading",
+      "English",
+      "ELA",
+      "Language Arts",
+    ];
+  }
   return [subj];
 }
 

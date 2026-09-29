@@ -30,7 +30,7 @@ export function parseSyllabusHeuristic(rawText: string): ParsedSyllabus {
     detectedGrade = "High School / AP";
   }
 
-  const subjects = ["Math", "Physics", "Chemistry", "Biology", "Science", "History", "Geography", "Computer Science", "Coding", "English", "Economics"];
+  const subjects = ["Math", "Physics", "Chemistry", "Biology", "Science", "History", "Geography", "Computer Science", "Coding", "English", "English Language Arts", "Reading", "ELA", "Economics"];
   for (const s of subjects) {
     if (new RegExp(`\\b${s}\\b`, "i").test(rawText)) {
       detectedSubject = s;

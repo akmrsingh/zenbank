@@ -46,7 +46,9 @@ const STANDARD_GRADES = [
 
 const STANDARD_SUBJECTS = [
   "Math",
+  "English Language Arts",
   "Reading",
+  "English",
   "Science",
   "Social Studies",
   "History",
@@ -54,7 +56,6 @@ const STANDARD_SUBJECTS = [
   "Physics",
   "Chemistry",
   "Biology",
-  "English",
   "Economics",
 ];
 
@@ -1474,7 +1475,7 @@ export default function GeneratorPage() {
                   onChange={(e) => setCustomSubject(e.target.value)}
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs font-bold text-white focus:border-emerald-500 focus:outline-none"
                 >
-                  {["Math", "Reading", "Science", "History", "Coding", "Chemistry", "Physics", "Biology", "English"].map((s) => (
+                  {["Math", "English Language Arts", "Reading", "Science", "History", "Coding", "Chemistry", "Physics", "Biology", "English"].map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
