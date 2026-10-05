@@ -21,6 +21,9 @@ export async function GET(req: NextRequest) {
     const gradeLevel = searchParams.get("gradeLevel");
     const subject = searchParams.get("subject");
     const limit = parseInt(searchParams.get("limit") || "100", 10);
+    // My Zen Learning daily sync: skip heavy stats counts + pack joins
+    const slim =
+      searchParams.get("slim") === "1" || searchParams.get("for") === "sync";
 
     const where: Record<string, unknown> = {};
     if (status && status !== "all") where.status = status;
@@ -30,6 +33,40 @@ export async function GET(req: NextRequest) {
     if (subject && subject !== "all") where.subject = { contains: subject, mode: "insensitive" };
     if (search) {
       where.questionText = { contains: search, mode: "insensitive" };
+    }
+
+    if (slim) {
+      const questions = await prisma.question.findMany({
+        where,
+        select: {
+          id: true,
+          syllabusPackId: true,
+          questionText: true,
+          options: true,
+          correctAnswer: true,
+          explanation: true,
+          gradeLevel: true,
+          subject: true,
+          topic: true,
+          difficulty: true,
+          confidence: true,
+          status: true,
+        },
+        orderBy: { id: "asc" },
+        take: limit,
+      });
+
+      return NextResponse.json(
+        {
+          questions: questions.map((q) => ({
+            ...q,
+            id: Number(q.id),
+            syllabusPackId: q.syllabusPackId ? Number(q.syllabusPackId) : null,
+          })),
+          stats: null,
+        },
+        { headers: corsHeaders }
+      );
     }
 
     const [questions, total, drafts, verified, flagged] = await Promise.all([
