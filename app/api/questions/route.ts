@@ -20,7 +20,11 @@ export async function GET(req: NextRequest) {
     const topic = searchParams.get("topic");
     const gradeLevel = searchParams.get("gradeLevel");
     const subject = searchParams.get("subject");
-    const limit = parseInt(searchParams.get("limit") || "100", 10);
+    // Cap per page — clients page with afterId / skip to get the full bank
+    const rawLimit = parseInt(searchParams.get("limit") || "100", 10);
+    const limit = Math.min(Math.max(rawLimit || 100, 1), 5000);
+    const afterId = parseInt(searchParams.get("afterId") || "0", 10);
+    const skip = Math.max(parseInt(searchParams.get("skip") || "0", 10) || 0, 0);
     // My Zen Learning daily sync: skip heavy stats counts + pack joins
     const slim =
       searchParams.get("slim") === "1" || searchParams.get("for") === "sync";
@@ -33,6 +37,9 @@ export async function GET(req: NextRequest) {
     if (subject && subject !== "all") where.subject = { contains: subject, mode: "insensitive" };
     if (search) {
       where.questionText = { contains: search, mode: "insensitive" };
+    }
+    if (Number.isFinite(afterId) && afterId > 0) {
+      where.id = { gt: BigInt(afterId) };
     }
 
     if (slim) {
@@ -53,6 +60,7 @@ export async function GET(req: NextRequest) {
           status: true,
         },
         orderBy: { id: "asc" },
+        ...(afterId > 0 ? {} : skip > 0 ? { skip } : {}),
         take: limit,
       });
 
@@ -64,6 +72,13 @@ export async function GET(req: NextRequest) {
             syllabusPackId: q.syllabusPackId ? Number(q.syllabusPackId) : null,
           })),
           stats: null,
+          page: {
+            limit,
+            afterId: afterId > 0 ? afterId : null,
+            nextAfterId:
+              questions.length > 0 ? Number(questions[questions.length - 1].id) : null,
+            hasMore: questions.length === limit,
+          },
         },
         { headers: corsHeaders }
       );
