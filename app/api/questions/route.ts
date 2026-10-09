@@ -43,26 +43,33 @@ export async function GET(req: NextRequest) {
     }
 
     if (slim) {
-      const questions = await prisma.question.findMany({
-        where,
-        select: {
-          id: true,
-          syllabusPackId: true,
-          questionText: true,
-          options: true,
-          correctAnswer: true,
-          explanation: true,
-          gradeLevel: true,
-          subject: true,
-          topic: true,
-          difficulty: true,
-          confidence: true,
-          status: true,
-        },
-        orderBy: { id: "asc" },
-        ...(afterId > 0 ? {} : skip > 0 ? { skip } : {}),
-        take: limit,
-      });
+      // Full-bank total (no cursor) so sync clients can verify a complete drain
+      const whereTotal: Record<string, unknown> = { ...where };
+      delete whereTotal.id;
+
+      const [questions, totalMatching] = await Promise.all([
+        prisma.question.findMany({
+          where,
+          select: {
+            id: true,
+            syllabusPackId: true,
+            questionText: true,
+            options: true,
+            correctAnswer: true,
+            explanation: true,
+            gradeLevel: true,
+            subject: true,
+            topic: true,
+            difficulty: true,
+            confidence: true,
+            status: true,
+          },
+          orderBy: { id: "asc" },
+          ...(afterId > 0 ? {} : skip > 0 ? { skip } : {}),
+          take: limit,
+        }),
+        prisma.question.count({ where: whereTotal }),
+      ]);
 
       return NextResponse.json(
         {
@@ -78,6 +85,8 @@ export async function GET(req: NextRequest) {
             nextAfterId:
               questions.length > 0 ? Number(questions[questions.length - 1].id) : null,
             hasMore: questions.length === limit,
+            // Full verified bank size — sync must reach this count
+            totalMatching,
           },
         },
         { headers: corsHeaders }
